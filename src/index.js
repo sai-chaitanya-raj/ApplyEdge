@@ -1,6 +1,15 @@
 const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config();
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // This is nothing but if the deployment or server provide port use that or else use port 3000.
+
+app.use(express.json());//middleware
+
+const resumeRoutes = require("./routes/resume");
+app.use("/api/resume",resumeRoutes);
+
+
 app.get("/",(req,res)=>{
     res.send("AppluEdge is working on port 3000");
 });
