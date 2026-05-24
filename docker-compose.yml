@@ -65,6 +65,7 @@ services:
     # Injected into the Nginx configuration template at container startup
     environment:
       - BACKEND_HOST=backend:5000
+      - NGINX_ENVSUBST_FILTER=BACKEND_HOST
 
     # Frontend depends on backend being healthy before starting
     depends_on:
