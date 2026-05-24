@@ -35,7 +35,26 @@ exports.getResults = async (req, res) => {
   }
 };
 
+exports.getResults = async (req, res) => {
+  try {
+    const resume = await Resume.findById(req.params.id);
 
+    if (!resume) {
+      return res.status(404).json({ message: 'Results not found' });
+    }
+
+    res.status(200).json({
+      message: 'Full results retrieved',
+      analysis: resume.analysis,
+      resumeText: resume.resumeText,
+      jobDescription: resume.jobDescription
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+};
 
 exports.uploadResume = async (req, res) => {
   try {

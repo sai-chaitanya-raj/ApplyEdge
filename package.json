@@ -23,7 +23,8 @@
     "openai": "^6.39.0",
     "pdf-parse": "^2.4.5",
     "pdf-parser": "^1.0.5",
-    "pdfreader": "^3.0.8"
+    "pdfreader": "^3.0.8",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.5.0",

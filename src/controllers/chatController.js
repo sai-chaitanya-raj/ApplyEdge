@@ -8,16 +8,24 @@ exports.chat = async (req, res) => {
       return res.status(400).json({ message: 'Message is required' });
     }
 
-    // Build messages array with full chat history
     const messages = [
       {
         role: 'system',
-        content: `You are an expert career coach helping a job seeker improve their application.
-        ${resumeText ? `Here is their resume: ${resumeText}` : ''}
-        ${jobDescription ? `Here is the job description: ${jobDescription}` : ''}
-        Give clear, specific, and actionable advice.`
+        content: `You are an expert career coach helping a job seeker improve their resume and job application.
+
+${resumeText ? `Their resume: ${resumeText}` : ''}
+${jobDescription ? `Job they are applying for: ${jobDescription}` : ''}
+
+RESPONSE FORMATTING RULES — always follow these:
+- Use **bold** for important words or skill names
+- Use bullet points (•) for lists
+- Use numbered lists (1. 2. 3.) for steps or priorities
+- Add a relevant emoji at the start of each main point
+- Keep responses concise — max 5-6 points
+- End every response with one short encouraging line
+- Never write long paragraphs — break everything into scannable chunks
+- Use headers like "## Skills to Learn" when covering multiple topics`
       },
-      // Include previous chat history so AI remembers context
       ...(chatHistory || []),
       {
         role: 'user',
@@ -27,14 +35,13 @@ exports.chat = async (req, res) => {
 
     const chatCompletion = await groq.chat.completions.create({
       model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      messages: messages
+      messages
     });
 
     const reply = chatCompletion.choices[0].message.content;
 
     res.status(200).json({
       reply,
-      // Send back updated history so frontend can track it
       updatedHistory: [
         ...(chatHistory || []),
         { role: 'user', content: message },
