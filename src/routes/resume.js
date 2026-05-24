@@ -16,8 +16,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-
-router.post('/upload', upload.single('resume'), resumeController.uploadResume);
+// Both routes now protected
+router.post('/upload', authMiddleware, upload.single('resume'), resumeController.uploadResume);
 router.get('/results/:id', authMiddleware, resumeController.getResults);
 
 module.exports = router;
