@@ -13,12 +13,10 @@ router.get('/google',
 
 router.get('/google/callback',
   (req, res, next) => {
-    console.log('[OAuth Callback] Received callback, query:', req.query);
     passport.authenticate('google', { session: false }, (err, user, info) => {
-      console.log('[OAuth Callback] err:', err, 'user:', user ? user.email : null, 'info:', info);
       if (err || !user) {
-        console.error('Google OAuth error:', err || info);
-        return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+        console.error('[Google OAuth] Authentication failed:', err || info);
+        return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=oauth_failed`);
       }
 
       const token = jwt.sign(
@@ -33,9 +31,9 @@ router.get('/google/callback',
         email: user.email
       });
 
-      const redirectUrl = `${process.env.CLIENT_URL}/auth/success?token=${token}&user=${encodeURIComponent(userPayload)}`;
-      console.log('[OAuth Callback] Redirecting to:', redirectUrl.substring(0, 80) + '...');
-      res.redirect(redirectUrl);
+      res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/success?token=${token}&user=${encodeURIComponent(userPayload)}`
+      );
     })(req, res, next);
   }
 );

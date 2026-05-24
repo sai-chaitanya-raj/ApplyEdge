@@ -1,0 +1,77 @@
+# ── docker-compose.yml — LOCAL DOCKER TESTING ─────────────────────────────
+# Use this to test the full Docker setup on your machine before deploying.
+#
+# Commands:
+#   docker-compose build        ← build both images
+#   docker-compose up           ← start both containers
+#   docker-compose up -d        ← start in background (detached)
+#   docker-compose down         ← stop and remove containers
+#   docker-compose logs backend ← see backend logs
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Backend (Node.js) ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .          # use root Dockerfile
+      dockerfile: Dockerfile
+    container_name: applyedge-backend
+    restart: unless-stopped
+
+    # Environment variables — override with your real values for local Docker test
+    # Do NOT use quotes around values in .env files
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - CLIENT_URL=http://localhost       # same domain — nginx handles routing
+      - SERVER_URL=http://localhost       # same domain — nginx handles routing
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+
+    # Backend is NOT exposed to the host directly — only accessible via Nginx
+    # This is intentional for security: all traffic goes through frontend/Nginx
+    expose:
+      - "5000"
+
+    networks:
+      - applyedge-network
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Frontend (Nginx + React build) ───────────────────────────────────────
+  frontend:
+    build:
+      context: ./client    # use client/Dockerfile
+      dockerfile: Dockerfile
+    container_name: applyedge-frontend
+    restart: unless-stopped
+
+    # Exposed to host: http://localhost → nginx → React or /api → backend
+    ports:
+      - "80:80"
+
+    # Frontend depends on backend being healthy before starting
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    networks:
+      - applyedge-network
+
+# ── Shared Network ────────────────────────────────────────────────────────
+# Both containers can talk to each other using service names (e.g. "backend")
+networks:
+  applyedge-network:
+    driver: bridge

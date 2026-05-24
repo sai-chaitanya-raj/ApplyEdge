@@ -1,0 +1,13 @@
+# Backend — what NOT to include in the Docker image
+node_modules
+.env
+.env.*
+.git
+.gitignore
+*.log
+npm-debug.log*
+uploads/*
+client
+README.md
+docker-compose.yml
+docker-compose.prod.yml

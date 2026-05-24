@@ -1,0 +1,10 @@
+# Frontend — what NOT to include in the Docker image build context
+node_modules
+build
+.env
+.env.*
+.git
+.gitignore
+*.log
+npm-debug.log*
+README.md
