@@ -44,7 +44,7 @@ function Register() {
             <h1 className="text-3xl font-medium text-gray-900 mb-2">Create your account</h1>
             <p className="text-gray-500 text-sm">Start analyzing your resume for free</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm">
             {error && (
               <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
                 {error}

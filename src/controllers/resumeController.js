@@ -26,28 +26,9 @@ exports.getResults = async (req, res) => {
     res.status(200).json({
       message: 'Full results retrieved',
       analysis: resume.analysis,
-      pdfUrl: resume.pdfUrl
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Something went wrong' });
-  }
-};
-
-exports.getResults = async (req, res) => {
-  try {
-    const resume = await Resume.findById(req.params.id);
-
-    if (!resume) {
-      return res.status(404).json({ message: 'Results not found' });
-    }
-
-    res.status(200).json({
-      message: 'Full results retrieved',
-      analysis: resume.analysis,
       resumeText: resume.resumeText,
-      jobDescription: resume.jobDescription
+      jobDescription: resume.jobDescription,
+      pdfUrl: resume.pdfUrl
     });
 
   } catch (error) {

@@ -71,10 +71,10 @@ function Analyze() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-8 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-medium text-gray-900 mb-2">Analyze your resume</h1>
+        <div className="text-center mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-2">Analyze your resume</h1>
           <p className="text-gray-500 text-sm">Upload your resume and paste the job description to get started</p>
         </div>
 
@@ -84,7 +84,7 @@ function Analyze() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8">
 
           {/* Left - PDF Upload */}
           <div>

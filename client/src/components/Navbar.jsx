@@ -4,7 +4,7 @@ function Navbar() {
   const token = localStorage.getItem('token');
 
   return (
-    <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
+    <nav className="flex items-center justify-between px-4 md:px-8 py-4 border-b border-gray-100">
       <Link to="/" className="flex items-center gap-2 text-lg font-medium text-gray-900">
         ⚡ ApplyEdge
       </Link>
@@ -13,7 +13,7 @@ function Navbar() {
           <>
             <Link to="/analyze" className="text-sm text-gray-500 hover:text-gray-900">Analyze</Link>
             <button
-              onClick={() => { localStorage.removeItem('token'); window.location.href = '/'; }}
+              onClick={() => { localStorage.clear(); window.location.href = '/'; }}
               className="text-sm text-gray-500 hover:text-gray-900"
             >
               Logout

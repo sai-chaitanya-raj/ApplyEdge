@@ -106,7 +106,7 @@ function Chat() {
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 bg-gray-50 rounded-2xl p-6 mb-4 overflow-y-auto max-h-96 space-y-4">
+        <div className="flex-1 bg-gray-50 rounded-2xl p-4 sm:p-6 mb-4 overflow-y-auto max-h-96 space-y-4">
           {messages.map((msg, i) => (
             <div
               key={i}

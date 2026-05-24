@@ -81,7 +81,7 @@ function Results() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-8 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
         <div className="text-center mb-10">
           <h1 className="text-3xl font-medium text-gray-900 mb-2">Your results</h1>
@@ -104,7 +104,7 @@ function Results() {
         </div>
 
         {/* Skills Grid */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
           {/* Matched Skills */}
           <div className="bg-green-50 border border-green-100 rounded-2xl p-6">
@@ -189,16 +189,16 @@ function Results() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button
             onClick={() => navigate(`/chat/${id}`)}
-            className="bg-purple-600 text-white px-8 py-3 rounded-xl text-sm font-medium hover:bg-purple-700"
+            className="w-full sm:w-auto bg-purple-600 text-white px-8 py-3 rounded-xl text-sm font-medium hover:bg-purple-700 text-center"
           >
             💬 Chat with AI coach
           </button>
           <button
             onClick={() => navigate('/analyze')}
-            className="border border-gray-200 text-gray-700 px-8 py-3 rounded-xl text-sm font-medium hover:bg-gray-50"
+            className="w-full sm:w-auto border border-gray-200 text-gray-700 px-8 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 text-center"
           >
             Analyze another resume
           </button>
