@@ -2,6 +2,9 @@ const express = require("express");
 const dotenv = require("dotenv");
 const chatRoutes = require('./routes/chat');
 dotenv.config();
+
+const connectDB = require('./config/database');
+connectDB();
 const app = express();
 const PORT = process.env.PORT || 3000; // This is nothing but if the deployment or server provide port use that or else use port 3000.
 

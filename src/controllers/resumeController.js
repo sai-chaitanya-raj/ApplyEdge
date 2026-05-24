@@ -1,8 +1,9 @@
 const fs = require('fs');
 const { PdfReader } = require('pdfreader');
 const groq = require('../config/groq');
+const Resume = require('../models/Resume');
+const cloudinary = require('../config/cloudinary');
 
-// Extract text from PDF
 const extractText = (filePath) => {
   return new Promise((resolve, reject) => {
     let text = '';
@@ -16,6 +17,8 @@ const extractText = (filePath) => {
 
 exports.uploadResume = async (req, res) => {
   try {
+    console.log('--- Request received ---');
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -27,13 +30,23 @@ exports.uploadResume = async (req, res) => {
     const filePath = req.file.path;
     const jobDescription = req.body.jobDescription;
 
-    // Step 1 - Extract resume text
+    console.log('Extracting text from PDF...');
     const resumeText = await extractText(filePath);
+    console.log('Text extracted');
 
-    // Step 2 - Delete file after reading
+    console.log('Uploading PDF to Cloudinary...');
+    const cloudinaryUpload = await cloudinary.uploader.upload(filePath, {
+      resource_type: 'raw',
+      folder: 'applyedge/resumes',
+      format: 'pdf'
+    });
+    const pdfUrl = cloudinaryUpload.secure_url;
+    console.log('PDF uploaded to Cloudinary:', pdfUrl);
+
     fs.unlinkSync(filePath);
+    console.log('Local PDF file deleted');
 
-    // Step 3 - Send to Groq for analysis
+    console.log('Calling Groq AI...');
     const chatCompletion = await groq.chat.completions.create({
       model: 'meta-llama/llama-4-scout-17b-16e-instruct',
       messages: [
@@ -56,19 +69,31 @@ exports.uploadResume = async (req, res) => {
         }
       ]
     });
+    console.log('Groq response received');
 
-    // Step 4 - Parse Groq response
     const rawResponse = chatCompletion.choices[0].message.content;
     const cleaned = rawResponse.replace(/```json|```/g, '').trim();
     const analysis = JSON.parse(cleaned);
+    console.log('Analysis parsed successfully');
+
+    console.log('Saving to MongoDB...');
+    const savedResume = await Resume.create({
+      resumeText,
+      jobDescription,
+      pdfUrl,
+      analysis
+    });
+    console.log('Saved! ID:', savedResume._id);
 
     res.status(200).json({
       message: 'Resume analyzed successfully',
+      id: savedResume._id,
+      pdfUrl,
       analysis
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('ERROR:', error.message);
     res.status(500).json({ message: 'Something went wrong', error: error.message });
   }
 };
