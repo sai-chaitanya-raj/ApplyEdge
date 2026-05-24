@@ -62,6 +62,10 @@ services:
     ports:
       - "80:80"
 
+    # Injected into the Nginx configuration template at container startup
+    environment:
+      - BACKEND_HOST=backend:5000
+
     # Frontend depends on backend being healthy before starting
     depends_on:
       backend:
