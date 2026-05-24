@@ -1,5 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const cors = require('cors');
 dotenv.config();
 
 const connectDB = require('./config/database');
@@ -7,7 +8,7 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 
 const resumeRoutes = require("./routes/resume");
