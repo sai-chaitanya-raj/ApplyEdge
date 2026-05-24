@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 // In development: CRA proxy in package.json forwards /api → localhost:5000
-// In Docker/production: Nginx proxy forwards /api → backend container
+// In production (Render Free): calls the public backend URL directly via REACT_APP_API_URL
+// In standard Docker: defaults to Nginx proxy relative /api URL
 const api = axios.create({
-  baseURL: '/api'
+  baseURL: process.env.REACT_APP_API_URL || '/api'
 });
 
 api.interceptors.request.use((config) => {

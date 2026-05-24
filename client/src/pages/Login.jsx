@@ -30,8 +30,9 @@ function Login() {
   };
 
   const handleGoogle = () => {
-    // Relative URL — works in dev (CRA proxy), Docker (Nginx proxy), and production
-    window.location.href = '/api/auth/google';
+    // Prefixed with REACT_APP_API_URL (public backend domain) if defined, falls back to relative /api
+    const apiUrl = process.env.REACT_APP_API_URL || '';
+    window.location.href = `${apiUrl}/api/auth/google`;
   };
 
   return (
