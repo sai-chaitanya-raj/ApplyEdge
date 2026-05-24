@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000; // This is nothing but if the deployment 
 app.use(express.json());//middleware
 
 const resumeRoutes = require("./routes/resume");
+console.log("resumeRoutes:", resumeRoutes); 
 app.use("/api/resume",resumeRoutes);
 
 
@@ -16,3 +17,4 @@ app.get("/",(req,res)=>{
 app.listen(PORT,()=>{
     console.log(`ApplyEdge server is started in the poert ${PORT}`);
 })
+

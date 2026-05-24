@@ -1,5 +1,5 @@
 const fs = require('fs');
-const pdfParse = require('pdf-parse');
+const { PdfReader } = require('pdfreader');
 
 exports.uploadResume = async (req, res) => {
   try {
@@ -7,12 +7,26 @@ exports.uploadResume = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const pdfBuffer = fs.readFileSync(req.file.path);
-    const pdfData = await pdfParse(pdfBuffer);
-    const resumeText = pdfData.text;
+    const filePath = req.file.path;
 
-    // Delete file after reading
-    fs.unlinkSync(req.file.path);
+    const extractText = () => {
+      return new Promise((resolve, reject) => {
+        let text = '';
+        new PdfReader().parseFileItems(filePath, (err, item) => {
+          if (err) {
+            reject(err);
+          } else if (!item) {
+            resolve(text);
+          } else if (item.text) {
+            text += item.text + ' ';
+          }
+        });
+      });
+    };
+
+    const resumeText = await extractText();
+
+    fs.unlinkSync(filePath);
 
     res.status(200).json({
       message: 'Resume uploaded successfully',
