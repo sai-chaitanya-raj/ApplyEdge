@@ -93,7 +93,9 @@ function Analyze() {
       if (err.response?.status === 401) {
         setError('Please login to analyze your resume');
       } else {
-        setError(err.response?.data?.message || 'Something went wrong');
+        const msg = err.response?.data?.message || 'Something went wrong';
+        const detail = err.response?.data?.error || err.message || '';
+        setError(detail ? `${msg}: ${detail}` : msg);
       }
     } finally {
       setLoading(false);
