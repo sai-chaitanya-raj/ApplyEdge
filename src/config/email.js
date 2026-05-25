@@ -20,6 +20,7 @@ const transporter = nodemailer.createTransport({
 
 function useSmtpForLocalDev() {
   return (
+    !process.env.BREVO_API_KEY &&
     process.env.NODE_ENV !== 'production' &&
     process.env.SMTP_USER &&
     process.env.SMTP_PASS
@@ -136,26 +137,34 @@ async function sendViaSmtp(to, otp) {
 }
 
 async function sendPasswordResetOtp(to, otp) {
-  if (useSmtpForLocalDev()) {
-    return sendViaSmtp(to, otp);
-  }
+  // Brevo first whenever key is set (Render + Docker + local — avoids blocked SMTP)
   if (process.env.BREVO_API_KEY) {
     return sendViaBrevo(to, otp);
+  }
+
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Never use Gmail SMTP on production (Render blocks port 587)
+  if (!isProduction && useSmtpForLocalDev()) {
+    return sendViaSmtp(to, otp);
   }
   if (process.env.RESEND_API_KEY) {
     return sendViaResend(to, otp);
   }
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  if (!isProduction && process.env.SMTP_USER && process.env.SMTP_PASS) {
     return sendViaSmtp(to, otp);
   }
+
   throw new Error(
-    'No email provider configured. Set BREVO_API_KEY on Render, or SMTP_USER/SMTP_PASS for local dev.'
+    isProduction
+      ? 'Set BREVO_API_KEY on Render (SMTP is blocked there). See .env.example'
+      : 'Set BREVO_API_KEY, or SMTP_USER/SMTP_PASS for local dev.'
   );
 }
 
 function getEmailProvider() {
-  if (useSmtpForLocalDev()) return 'smtp (local dev)';
   if (process.env.BREVO_API_KEY) return 'brevo';
+  if (useSmtpForLocalDev()) return 'smtp (local dev)';
   if (process.env.RESEND_API_KEY) return 'resend';
   if (process.env.SMTP_USER && process.env.SMTP_PASS) return 'smtp';
   return 'none';
