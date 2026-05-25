@@ -36,8 +36,8 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy React build output into Nginx's serve directory
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy our custom Nginx config template (handles SPA routing + dynamic /api proxy)
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# SPA-only nginx config (Render: API via REACT_APP_API_URL, not nginx proxy)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

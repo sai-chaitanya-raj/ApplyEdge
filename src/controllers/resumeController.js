@@ -14,6 +14,25 @@ const extractText = async (buffer) => {
   return text;
 };
 
+// Stream upload — faster and lower memory than base64 data-URI (important on Render)
+const uploadPdfToCloudinary = (buffer, originalName) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'raw',
+        folder: 'applyedge/resumes',
+        public_id: `${Date.now()}_${(originalName || 'resume.pdf').replace(/\.pdf$/i, '')}`,
+        format: 'pdf'
+      },
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
+};
+
 // ─── getResults ──────────────────────────────────────────────────────────────
 exports.getResults = async (req, res) => {
   try {
@@ -61,29 +80,10 @@ exports.uploadResume = async (req, res) => {
     return res.status(500).json({ message: 'Failed to read PDF', error: errMsg });
   }
 
-  // STEP 2 — Upload to Cloudinary
-  let pdfUrl;
-  try {
-    console.log('STEP 2: Uploading to Cloudinary...');
-    const base64 = fileBuffer.toString('base64');
-    const dataUri = `data:application/pdf;base64,${base64}`;
-    const result = await cloudinary.uploader.upload(dataUri, {
-      resource_type: 'raw',
-      folder: 'applyedge/resumes',
-      public_id: `${Date.now()}_${originalName}`,
-      format: 'pdf'
-    });
-    pdfUrl = result.secure_url;
-    console.log('STEP 2 OK — url:', pdfUrl);
-  } catch (e) {
-    console.error('STEP 2 FAILED (Cloudinary):', e.message);
-    return res.status(500).json({ message: 'Failed to upload PDF to Cloudinary', error: e.message });
-  }
-
-  // STEP 3 — Call Groq AI
+  // STEP 2 — Groq AI first (Render has ~30s request timeout; Cloudinary is slow on large PDFs)
   let analysis;
   try {
-    console.log('STEP 3: Calling Groq AI...');
+    console.log('STEP 2: Calling Groq AI...');
     const chatCompletion = await groq.chat.completions.create({
       model: 'meta-llama/llama-4-scout-17b-16e-instruct',
       messages: [
@@ -109,10 +109,21 @@ Return only valid JSON, no extra text.`
     const rawResponse = chatCompletion.choices[0].message.content;
     const cleaned = rawResponse.replace(/```json|```/g, '').trim();
     analysis = JSON.parse(cleaned);
-    console.log('STEP 3 OK — matchScore:', analysis.matchScore);
+    console.log('STEP 2 OK — matchScore:', analysis.matchScore);
   } catch (e) {
-    console.error('STEP 3 FAILED (Groq):', e.message);
+    console.error('STEP 2 FAILED (Groq):', e.message);
     return res.status(500).json({ message: 'Failed to analyze with AI', error: e.message });
+  }
+
+  // STEP 3 — Cloudinary (after AI so we stay within Render timeouts)
+  let pdfUrl;
+  try {
+    console.log('STEP 3: Uploading to Cloudinary...');
+    pdfUrl = await uploadPdfToCloudinary(fileBuffer, originalName);
+    console.log('STEP 3 OK — url:', pdfUrl);
+  } catch (e) {
+    console.error('STEP 3 FAILED (Cloudinary):', e.message);
+    return res.status(500).json({ message: 'Failed to upload PDF to Cloudinary', error: e.message });
   }
 
   // STEP 4 — Save to MongoDB

@@ -1,0 +1,56 @@
+# Render Blueprint — ApplyEdge (frontend static + backend web)
+# Dashboard: New > Blueprint > connect this repo, then fill env var secrets.
+#
+# After deploy, set CLIENT_URL on the backend to your real frontend URL.
+
+services:
+  - type: web
+    name: applyedge-api
+    runtime: node
+    rootDir: .
+    buildCommand: npm ci
+    startCommand: node src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SERVER_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+
+  - type: web
+    name: applyedge-web
+    runtime: static
+    rootDir: client
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    staticPublishPath: build
+    envVars:
+      # Option A: bake backend URL into the React build (redeploy after changing)
+      - key: REACT_APP_API_URL
+        sync: false
+    routes:
+      # Option B: proxy /api to backend (works even if REACT_APP_API_URL is unset)
+      - type: rewrite
+        source: /api/*
+        destination: https://applyedge-api.onrender.com/api/*

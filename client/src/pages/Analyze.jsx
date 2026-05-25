@@ -83,7 +83,8 @@ function Analyze() {
         formData.append('jobDescription', jobDescription);
 
         res = await api.post('/resume/upload', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000 // Render cold start + AI can exceed default 0 timeout
         });
       }
 
