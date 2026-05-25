@@ -1,16 +1,33 @@
-const fs = require('fs');
 const { PdfReader } = require('pdfreader');
 const groq = require('../config/groq');
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 
-const extractText = (filePath) => {
+// Parse PDF text from a Buffer (memory storage — no disk needed)
+const extractText = (buffer) => {
   return new Promise((resolve, reject) => {
     let text = '';
-    new PdfReader().parseFileItems(filePath, (err, item) => {
+    new PdfReader().parseBuffer(buffer, (err, item) => {
       if (err) reject(err);
       else if (!item) resolve(text);
       else if (item.text) text += item.text + ' ';
+    });
+  });
+};
+
+// Upload a buffer to Cloudinary using a base64 data URI (no temp file needed)
+const uploadBufferToCloudinary = (buffer, filename) => {
+  return new Promise((resolve, reject) => {
+    const base64 = buffer.toString('base64');
+    const dataUri = `data:application/pdf;base64,${base64}`;
+    cloudinary.uploader.upload(dataUri, {
+      resource_type: 'raw',
+      folder: 'applyedge/resumes',
+      public_id: `${Date.now()}_${filename}`,
+      format: 'pdf'
+    }, (error, result) => {
+      if (error) reject(error);
+      else resolve(result);
     });
   });
 };
@@ -39,7 +56,7 @@ exports.getResults = async (req, res) => {
 
 exports.uploadResume = async (req, res) => {
   try {
-    console.log('--- Request received ---');
+    console.log('--- Upload request received ---');
 
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -49,24 +66,18 @@ exports.uploadResume = async (req, res) => {
       return res.status(400).json({ message: 'Job description is required' });
     }
 
-    const filePath = req.file.path;
+    const fileBuffer = req.file.buffer;
+    const originalName = req.file.originalname || 'resume.pdf';
     const jobDescription = req.body.jobDescription;
 
-    console.log('Extracting text from PDF...');
-    const resumeText = await extractText(filePath);
-    console.log('Text extracted');
+    console.log('Extracting text from PDF buffer...');
+    const resumeText = await extractText(fileBuffer);
+    console.log('Text extracted, length:', resumeText.length);
 
     console.log('Uploading PDF to Cloudinary...');
-    const cloudinaryUpload = await cloudinary.uploader.upload(filePath, {
-      resource_type: 'raw',
-      folder: 'applyedge/resumes',
-      format: 'pdf'
-    });
+    const cloudinaryUpload = await uploadBufferToCloudinary(fileBuffer, originalName);
     const pdfUrl = cloudinaryUpload.secure_url;
     console.log('PDF uploaded to Cloudinary:', pdfUrl);
-
-    fs.unlinkSync(filePath);
-    console.log('Local PDF file deleted');
 
     console.log('Calling Groq AI...');
     const chatCompletion = await groq.chat.completions.create({
