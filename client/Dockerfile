@@ -14,8 +14,13 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the React app into /app/build
-# No REACT_APP_ env vars needed — API calls use relative /api path
+# Accept backend URL as a build-time argument (required for Render — two separate services)
+# Local Docker: not needed (Nginx proxies /api/* to the backend container)
+# Render: set REACT_APP_API_URL=https://applyedge-backend.onrender.com in Render dashboard
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# Build the React app — if REACT_APP_API_URL is set it gets baked into the bundle
 RUN npm run build
 
 # ─────────────────────────────────────────────────────────────────────────────
