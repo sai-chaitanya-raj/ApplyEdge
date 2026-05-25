@@ -38,9 +38,9 @@ exports.forgotPassword = async (req, res) => {
       })
       .catch((mailError) => {
         console.error('[Forgot Password] Email delivery failed:', mailError.message);
-        if (!process.env.RESEND_API_KEY) {
+        if (!process.env.BREVO_API_KEY && !process.env.RESEND_API_KEY) {
           console.error(
-            '[Forgot Password] Render free tier blocks Gmail SMTP. Add RESEND_API_KEY in Render env — see .env.example'
+            '[Forgot Password] On Render, add BREVO_API_KEY (recommended) or RESEND_API_KEY — see .env.example'
           );
         }
       });
