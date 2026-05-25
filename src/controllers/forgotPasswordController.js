@@ -46,14 +46,25 @@ exports.forgotPassword = async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'OTP sent to your email successfully' });
+    try {
+      await transporter.sendMail(mailOptions);
+      res.status(200).json({ message: 'OTP sent to your email successfully' });
+    } catch (mailError) {
+      console.warn('[Forgot Password] Nodemailer failed to deliver email:', mailError.message);
+      console.warn(`[Forgot Password] FALLBACK: Use the generated OTP [${otp}] from the console to verify.`);
+      
+      // Return 200 success with a notice so the user can test using console logs
+      res.status(200).json({ 
+        message: 'OTP generated successfully. (SMTP delivery failed/timed out, please check your server terminal console for the OTP code to proceed!)'
+      });
+    }
 
   } catch (error) {
-    console.error('[Forgot Password] Error sending OTP:', error.message);
-    res.status(500).json({ message: 'Could not send OTP email. Please verify SMTP settings.', error: error.message });
+    console.error('[Forgot Password] Error generating OTP:', error.message);
+    res.status(500).json({ message: 'Could not generate OTP.', error: error.message });
   }
 };
+
 
 exports.verifyOtp = async (req, res) => {
   try {
