@@ -1,7 +1,13 @@
 const dotenv = require('dotenv');
 dotenv.config(); // ← Must be loaded FIRST before any module that reads process.env
 
+const dns = require('dns');
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first'); // Force IPv4 first inside Docker to prevent ENETUNREACH
+}
+
 const express = require('express');
+
 const cors = require('cors');
 const session = require('express-session');
 const passport = require('./config/passport');
