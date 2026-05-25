@@ -36,8 +36,11 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy React build output into Nginx's serve directory
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# SPA-only nginx config (Render: API via REACT_APP_API_URL, not nginx proxy)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# nginx.conf = Render/static (no /api proxy). nginx.docker.conf = docker-compose (proxies /api).
+ARG NGINX_CONFIG=nginx.conf
+COPY ${NGINX_CONFIG} /etc/nginx/conf.d/default.conf
+# Prevent entrypoint envsubst from overwriting conf.d (causes read-only mount errors)
+RUN rm -rf /etc/nginx/templates
 
 EXPOSE 80
 

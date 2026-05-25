@@ -18,11 +18,25 @@ const transporter = nodemailer.createTransport({
   socketTimeout: 12000
 });
 
-function getFromAddress() {
-  const from = process.env.EMAIL_FROM || process.env.SMTP_FROM || '';
-  if (from.includes('@')) return from;
+function getSmtpFromAddress() {
+  const from = process.env.SMTP_FROM || '';
+  if (from.includes('@') && !from.includes('your_gmail')) return from;
   if (process.env.SMTP_USER) return `"ApplyEdge" <${process.env.SMTP_USER}>`;
+  throw new Error('Set SMTP_USER (and SMTP_PASS) in .env for local email');
+}
+
+function getResendFromAddress() {
+  const from = process.env.EMAIL_FROM || '';
+  if (from.includes('@')) return from;
   return 'ApplyEdge <onboarding@resend.dev>';
+}
+
+function useSmtpForLocalDev() {
+  return (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS
+  );
 }
 
 function buildOtpEmailContent(otp) {
@@ -45,7 +59,7 @@ async function sendViaResend(to, otp) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from: getFromAddress(),
+      from: getResendFromAddress(),
       to: [to],
       subject,
       text
@@ -62,22 +76,27 @@ async function sendViaResend(to, otp) {
 /** Gmail SMTP — works on localhost; blocked on Render free tier */
 async function sendViaSmtp(to, otp) {
   const { subject, text } = buildOtpEmailContent(otp);
-  return transporter.sendMail({ from: getFromAddress(), to, subject, text });
+  return transporter.sendMail({ from: getSmtpFromAddress(), to, subject, text });
 }
 
 async function sendPasswordResetOtp(to, otp) {
+  // Local/Docker: Gmail SMTP works. Resend test sender cannot mail arbitrary Gmail addresses.
+  if (useSmtpForLocalDev()) {
+    return sendViaSmtp(to, otp);
+  }
   if (process.env.RESEND_API_KEY) {
     return sendViaResend(to, otp);
   }
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    throw new Error(
-      'No email provider configured. Set RESEND_API_KEY on Render (recommended) or SMTP_USER/SMTP_PASS for local dev.'
-    );
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    return sendViaSmtp(to, otp);
   }
-  return sendViaSmtp(to, otp);
+  throw new Error(
+    'No email provider configured. Set RESEND_API_KEY on Render or SMTP_USER/SMTP_PASS for local dev.'
+  );
 }
 
 function getEmailProvider() {
+  if (useSmtpForLocalDev()) return 'smtp (local dev)';
   if (process.env.RESEND_API_KEY) return 'resend';
   if (process.env.SMTP_USER && process.env.SMTP_PASS) return 'smtp';
   return 'none';
@@ -91,8 +110,10 @@ if (getEmailProvider() === 'smtp') {
       else console.log('[Email SMTP] Pool ready');
     });
   });
-} else if (getEmailProvider() === 'resend') {
+} else if (String(getEmailProvider()).startsWith('resend')) {
   console.log('[Email] Using Resend API (HTTPS) — OK for Render free tier');
+} else if (String(getEmailProvider()).startsWith('smtp (local')) {
+  console.log('[Email] Using Gmail SMTP for local development');
 } else {
   console.warn('[Email] No RESEND_API_KEY or SMTP credentials — OTP emails will fail');
 }
