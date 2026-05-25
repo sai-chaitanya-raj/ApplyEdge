@@ -32,9 +32,18 @@ exports.forgotPassword = async (req, res) => {
       message: 'Verification code is on its way. Check your inbox (and spam) in a minute.'
     });
 
-    sendPasswordResetOtp(user.email, otp).catch((mailError) => {
-      console.error('[Forgot Password] Email delivery failed:', mailError.message);
-    });
+    sendPasswordResetOtp(user.email, otp)
+      .then(() => {
+        console.log(`[Forgot Password] Email sent to ${user.email}`);
+      })
+      .catch((mailError) => {
+        console.error('[Forgot Password] Email delivery failed:', mailError.message);
+        if (!process.env.RESEND_API_KEY) {
+          console.error(
+            '[Forgot Password] Render free tier blocks Gmail SMTP. Add RESEND_API_KEY in Render env — see .env.example'
+          );
+        }
+      });
 
   } catch (error) {
     console.error('[Forgot Password] Error generating OTP:', error.message);
