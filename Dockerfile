@@ -14,6 +14,9 @@ RUN npm ci --omit=dev
 # Copy the rest of the source code
 COPY src/ ./src/
 
+# Create the uploads directory so multer can write temp PDF files
+RUN mkdir -p /app/uploads
+
 # Expose the port Express listens on
 EXPOSE 5000
 

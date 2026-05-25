@@ -6,6 +6,15 @@ if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder('ipv4first'); // Force IPv4 first inside Docker to prevent ENETUNREACH
 }
 
+// Ensure uploads directory always exists (needed by multer for PDF temp storage)
+const fs = require('fs');
+const path = require('path');
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('[Server] Created missing uploads/ directory');
+}
+
 const express = require('express');
 
 const cors = require('cors');
