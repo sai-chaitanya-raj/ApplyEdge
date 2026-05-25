@@ -1,18 +1,17 @@
-const { PdfReader } = require('pdfreader');
+const { PDFParse } = require('pdf-parse');
 const groq = require('../config/groq');
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 
 // Parse PDF text from a Buffer (memory storage — no disk needed)
-const extractText = (buffer) => {
-  return new Promise((resolve, reject) => {
-    let text = '';
-    new PdfReader().parseBuffer(buffer, (err, item) => {
-      if (err) reject(err);
-      else if (!item) resolve(text);
-      else if (item.text) text += item.text + ' ';
-    });
-  });
+const extractText = async (buffer) => {
+  const parser = new PDFParse({ data: buffer });
+  const result = await parser.getText();
+  const text = (result.text || '').trim();
+  if (!text) {
+    throw new Error('No text could be extracted from this PDF. Try exporting it as a text-based PDF.');
+  }
+  return text;
 };
 
 // ─── getResults ──────────────────────────────────────────────────────────────
@@ -57,8 +56,9 @@ exports.uploadResume = async (req, res) => {
     resumeText = await extractText(fileBuffer);
     console.log('STEP 1 OK — chars:', resumeText.length);
   } catch (e) {
-    console.error('STEP 1 FAILED:', e.message);
-    return res.status(500).json({ message: 'Failed to read PDF', error: e.message });
+    const errMsg = e?.message || String(e);
+    console.error('STEP 1 FAILED:', errMsg);
+    return res.status(500).json({ message: 'Failed to read PDF', error: errMsg });
   }
 
   // STEP 2 — Upload to Cloudinary
