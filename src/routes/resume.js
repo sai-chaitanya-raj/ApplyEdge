@@ -19,5 +19,7 @@ const upload = multer({ storage: storage });
 // Both routes now protected
 router.post('/upload', authMiddleware, upload.single('resume'), resumeController.uploadResume);
 router.get('/results/:id', authMiddleware, resumeController.getResults);
+router.get('/my-resumes', authMiddleware, resumeController.getMyResumes);
+router.post('/analyze-existing', authMiddleware, resumeController.analyzeExisting);
 
 module.exports = router;

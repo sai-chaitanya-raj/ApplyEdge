@@ -12,11 +12,15 @@ passport.use(new GoogleStrategy({
 },
 async (accessToken, refreshToken, profile, done) => {
   try {
-    // Check if user already exists
+    // Check if user already exists by email (matches unified identification requirement)
     let user = await User.findOne({ email: profile.emails[0].value });
 
     if (user) {
-      // User exists — just return them
+      // If user exists but googleId is not linked, link it now
+      if (!user.googleId) {
+        user.googleId = profile.id;
+        await user.save();
+      }
       return done(null, user);
     }
 
