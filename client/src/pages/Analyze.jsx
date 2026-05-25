@@ -20,7 +20,8 @@ function Analyze() {
       setHistoryLoading(true);
       const fetchHistory = async () => {
         try {
-          const res = await api.get('/resume/my-resumes');
+          const res = await api.get('/resume/history');
+
           setPreviousResumes(res.data.resumes || []);
         } catch (err) {
           console.error('Failed to fetch resume history', err);

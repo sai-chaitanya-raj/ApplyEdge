@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const forgotPasswordController = require('../controllers/forgotPasswordController');
 const passport = require('../config/passport');
 const jwt = require('jsonwebtoken');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/forgot-password', forgotPasswordController.forgotPassword);
+router.post('/verify-otp', forgotPasswordController.verifyOtp);
+router.post('/reset-password', forgotPasswordController.resetPassword);
+
 
 router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'], state: false })
