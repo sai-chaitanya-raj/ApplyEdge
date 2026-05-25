@@ -30,10 +30,12 @@ function Register() {
   };
 
   const handleGoogle = () => {
-    // Prefixed with REACT_APP_API_URL (public backend domain) if defined, falls back to relative /api
-    const apiUrl = process.env.REACT_APP_API_URL || '';
+    let apiUrl = process.env.REACT_APP_API_URL || '';
+    // Strip any trailing /api or trailing slashes to build correct callback URL
+    apiUrl = apiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
     window.location.href = `${apiUrl}/api/auth/google`;
   };
+
 
   return (
     <div className="min-h-screen bg-white">
