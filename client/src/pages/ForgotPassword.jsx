@@ -21,11 +21,25 @@ function ForgotPassword() {
     setError('');
     setMessage('');
     try {
-      const res = await api.post('/auth/forgot-password', { email });
+      const res = await api.post('/auth/forgot-password', { email }, { timeout: 15000 });
       setMessage(res.data.message);
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const res = await api.post('/auth/forgot-password', { email }, { timeout: 15000 });
+      setMessage(res.data.message);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not resend code. Try again.');
     } finally {
       setLoading(false);
     }
@@ -141,6 +155,9 @@ function ForgotPassword() {
                     required
                   />
                 </div>
+                <p className="text-xs text-gray-500 text-center">
+                  Email can take up to a minute. Check spam if needed.
+                </p>
                 <div className="flex gap-3">
                   <button
                     type="button"
@@ -157,6 +174,14 @@ function ForgotPassword() {
                     {loading ? 'Verifying...' : 'Verify code'}
                   </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={loading}
+                  className="w-full text-sm text-purple-600 hover:underline disabled:opacity-50"
+                >
+                  Resend code
+                </button>
               </form>
             )}
 
