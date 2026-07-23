@@ -1,4 +1,5 @@
 const groq = require('../config/groq');
+const GROQ_MODEL = require('../config/groq').model;
 
 exports.chat = async (req, res) => {
   try {
@@ -34,7 +35,7 @@ RESPONSE FORMATTING RULES — always follow these:
     ];
 
     const chatCompletion = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      model: GROQ_MODEL,
       messages
     });
 

@@ -1,5 +1,6 @@
 const { PDFParse } = require('pdf-parse');
 const groq = require('../config/groq');
+const GROQ_MODEL = require('../config/groq').model;
 const Resume = require('../models/Resume');
 const cloudinary = require('../config/cloudinary');
 
@@ -85,7 +86,7 @@ exports.uploadResume = async (req, res) => {
   try {
     console.log('STEP 2: Calling Groq AI...');
     const chatCompletion = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      model: GROQ_MODEL,
       messages: [
         {
           role: 'system',
@@ -171,7 +172,7 @@ exports.analyzeExisting = async (req, res) => {
 
     console.log('Re-analyzing existing resume...');
     const chatCompletion = await groq.chat.completions.create({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      model: GROQ_MODEL,
       messages: [
         {
           role: 'system',
